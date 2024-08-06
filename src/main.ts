@@ -12,11 +12,14 @@ async function bootstrap() {
 
   app.setGlobalPrefix(appConfig.globalPrefix);
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors({ origin: process.env.CLIENT_URL });
+  app.enableCors({ origin: process.env.APP_CLIENT_URL });
 
   setupOpenAPI(app);
 
-  await app.listen(3000);
+  await app.listen(appConfig.port);
+  console.log(
+    `Server started at http://localhost:${appConfig.port}/${appConfig.globalPrefix}`,
+  );
 }
 
 bootstrap();
@@ -33,5 +36,7 @@ function setupOpenAPI(app: INestApplication) {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup(`${appConfig.globalPrefix}`, app, document);
+  SwaggerModule.setup(`${appConfig.globalPrefix}`, app, document, {
+    customSiteTitle: openApiConfig.title,
+  });
 }

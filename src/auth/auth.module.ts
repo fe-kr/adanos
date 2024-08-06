@@ -6,8 +6,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthConfig } from 'src/common/config';
-import { EmailMagicLinkStrategy } from './strategies/email-magic-link.strategy';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { EmailMagicLinkStrategy } from './strategy/email-magic-link.strategy';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
   imports: [
