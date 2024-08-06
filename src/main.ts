@@ -17,8 +17,10 @@ async function bootstrap() {
   setupOpenAPI(app);
 
   await app.listen(appConfig.port);
+
   console.log(
-    `Server started at http://localhost:${appConfig.port}/${appConfig.globalPrefix}`,
+    '\nServer started at:',
+    `\x1b[36m http://localhost:${appConfig.port}/${appConfig.globalPrefix} \x1b[0m`,
   );
 }
 

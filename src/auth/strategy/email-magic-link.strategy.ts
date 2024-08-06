@@ -1,4 +1,3 @@
-import { join } from 'node:path';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import Strategy from 'passport-magic-login';
@@ -24,8 +23,9 @@ export class EmailMagicLinkStrategy extends PassportStrategy(
     super({
       secret,
       jwtOptions: { expiresIn },
-      callbackUrl: join(clientUrl, '/sing-in/by-email/callback'),
+      callbackUrl: clientUrl + '/api/auth/email/callback',
       sendMagicLink: async (destination: string, href: string) => {
+        await this.validate({ destination });
         await mailerService.sendMail({
           // to: destination,
           to: process.env.MAIL_RECEIVER_STUB,
@@ -38,8 +38,8 @@ export class EmailMagicLinkStrategy extends PassportStrategy(
     });
   }
 
-  validate(payload: EmailMagicLinkDto) {
-    const user = this.authService.validateUser(payload.destination);
+  async validate(payload: EmailMagicLinkDto) {
+    const user = await this.authService.validateUser(payload.destination);
 
     return user;
   }

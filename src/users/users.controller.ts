@@ -18,22 +18,20 @@ import { JwtAuthGuard } from 'src/auth/guard';
 @ApiTags('Users')
 @ApiBearerAuth('JWT')
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   getUsers() {
     return this.usersService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Put(':id')
   updateUserById(
     @Param('id') id: string,
@@ -42,7 +40,6 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteUserById(@Param('id') id: string) {
     await this.usersService.delete(id);

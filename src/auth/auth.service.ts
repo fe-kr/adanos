@@ -10,8 +10,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  validateUser(email: string) {
-    const user = this.usersService.findOneByEmail(email);
+  async validateUser(email: string) {
+    const user = await this.usersService.findOneByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException();
@@ -20,9 +20,31 @@ export class AuthService {
     return user;
   }
 
-  generateToken(user: User) {
-    const payload = { sub: user.id, email: user.email };
+  async registerUser(user: User) {
+    const newUser = await this.usersService.create(user);
+    const tokenData = this.generateJwtToken(newUser);
 
-    return { access_token: this.jwtService.sign(payload) };
+    return { ...tokenData, ...newUser };
+  }
+
+  async signInUser(user: User) {
+    const currentUser = await this.usersService.findOneByEmail(user.email);
+
+    if (!currentUser) {
+      return this.registerUser(user);
+    }
+
+    const tokenData = this.generateJwtToken(user);
+
+    return { ...tokenData, ...currentUser };
+  }
+
+  generateJwtToken(user: User) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    return { accessToken: this.jwtService.sign(payload) };
   }
 }
