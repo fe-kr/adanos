@@ -22,8 +22,8 @@ export class AuthController {
   ) {}
 
   @Post('email')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  signInByEmail(@Req() req, @Res() res, @Body() _body: EmailMagicLinkDto) {
+  signInByEmail(@Req() req, @Res() res, @Body() body: EmailMagicLinkDto) {
+    req.body.destination = body.email;
     return this.emailMagicLinkStrategy.send(req, res);
   }
 

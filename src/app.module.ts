@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { globalConfigs, MailerConfig } from './common/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { CallsModule } from './calls/calls.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     }),
     AuthModule,
     UsersModule,
+    CallsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

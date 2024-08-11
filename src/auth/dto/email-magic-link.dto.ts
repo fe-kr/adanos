@@ -4,5 +4,5 @@ import { IsEmail } from 'class-validator';
 export class EmailMagicLinkDto {
   @ApiProperty({ required: true })
   @IsEmail()
-  destination: string;
+  email: string;
 }
