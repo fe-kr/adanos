@@ -4,7 +4,11 @@ import {
   UpdateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  OneToMany,
+  Relation,
 } from 'typeorm';
+
+import type { Call } from './call.entity';
 
 @Entity()
 export class User {
@@ -29,4 +33,10 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @OneToMany('Call', 'sender')
+  sentCalls: Relation<Call[]>;
+
+  @OneToMany('Call', 'receiver')
+  receivedCalls: Relation<Call[]>;
 }

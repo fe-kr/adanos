@@ -22,7 +22,7 @@ export class EmailMagicLinkStrategy extends PassportStrategy(
     super({
       secret,
       jwtOptions: { expiresIn },
-      callbackUrl: clientUrl + '/api/auth/email/callback',
+      callbackUrl: clientUrl + '/sign-in/callback',
       sendMagicLink: async (destination: string, href: string) => {
         await this.validate(destination);
         await mailerService.sendMail({

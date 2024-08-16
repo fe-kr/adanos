@@ -33,7 +33,7 @@ function setupOpenAPI(app: INestApplication) {
 
   const config = new DocumentBuilder()
     .setTitle(openApiConfig.title)
-    .addBasicAuth(openApiConfig.securityScheme)
+    .addBasicAuth(openApiConfig.securityScheme, 'JWT')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
