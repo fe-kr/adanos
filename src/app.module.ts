@@ -8,6 +8,8 @@ import { globalConfigs, MailerConfig } from './common/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { CallsModule } from './calls/calls.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -27,9 +29,11 @@ import { CallsModule } from './calls/calls.module';
       useFactory: (configService: ConfigService) =>
         configService.get<MailerConfig>('mailer'),
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     CallsModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

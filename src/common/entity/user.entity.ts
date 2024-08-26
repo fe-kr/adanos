@@ -6,10 +6,12 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   Relation,
+  Unique,
 } from 'typeorm';
 
 import type { Call } from './call.entity';
 
+@Unique(['email'])
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -21,8 +23,11 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   avatar: string;
+
+  @Column({ default: true })
+  inactive: boolean;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

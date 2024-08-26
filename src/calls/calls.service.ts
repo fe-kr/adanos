@@ -4,7 +4,7 @@ import { Call, User } from 'src/common/entity';
 import { Repository } from 'typeorm';
 import { CreateCallDto } from './dto/create-call.dto';
 import { UpdateCallDto } from './dto/update-call.dto';
-import { IPagination, PaginatedResponse } from 'src/common/decorators';
+import { IPagination, PaginatedResponse } from 'src/common/decorator';
 
 @Injectable()
 export class CallsService {

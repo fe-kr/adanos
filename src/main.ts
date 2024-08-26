@@ -4,14 +4,19 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { AppConfig, OpenApiConfig } from './common/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'node:path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const appConfig = configService.get<AppConfig>('app');
 
   app.setGlobalPrefix(appConfig.globalPrefix);
   app.useGlobalPipes(new ValidationPipe());
+  app.useStaticAssets(join(process.cwd(), appConfig.serveStaticRoot), {
+    prefix: `/${appConfig.serveStaticRoot}`,
+  });
   app.enableCors({ origin: process.env.APP_CLIENT_URL });
 
   setupOpenAPI(app);

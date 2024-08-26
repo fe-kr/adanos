@@ -20,7 +20,7 @@ export class AuthService {
     return user;
   }
 
-  async registerUser(user: User) {
+  async registerUser(user: Pick<User, 'name' | 'email'>) {
     const newUser = await this.usersService.create(user);
     const tokenData = this.generateJwtToken(newUser);
 
@@ -34,7 +34,18 @@ export class AuthService {
       return this.registerUser(user);
     }
 
+    if (currentUser.inactive) {
+      await this.usersService.activate(currentUser.id);
+    }
+
     const tokenData = this.generateJwtToken(user);
+
+    return { ...tokenData, ...currentUser };
+  }
+
+  async updateUserSession(userId: string, body: Partial<User>) {
+    const currentUser = await this.usersService.update(userId, body);
+    const tokenData = this.generateJwtToken(currentUser);
 
     return { ...tokenData, ...currentUser };
   }
@@ -46,5 +57,9 @@ export class AuthService {
     };
 
     return { accessToken: this.jwtService.sign(payload) };
+  }
+
+  decodeJwtToken(token: string) {
+    return this.jwtService.decode(token);
   }
 }

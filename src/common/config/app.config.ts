@@ -5,6 +5,7 @@ export interface AppConfig {
   name: string;
   globalPrefix: string;
   clientUrl: string;
+  serveStaticRoot: string;
 }
 
 export default registerAs(
@@ -14,5 +15,6 @@ export default registerAs(
     name: process.env.APP_NAME,
     clientUrl: process.env.APP_CLIENT_URL,
     globalPrefix: process.env.APP_GLOBAL_PREFIX,
+    serveStaticRoot: process.env.SERVE_STATIC_ROOT,
   }),
 );

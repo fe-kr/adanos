@@ -17,8 +17,12 @@ export class Call {
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-  endedAt: Date;
+  @Column({
+    type: 'timestamptz',
+    nullable: true,
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
+  endedAt: Date | null;
 
   @ManyToOne('User', 'sentCalls')
   sender: Relation<User>;

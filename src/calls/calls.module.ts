@@ -1,3 +1,4 @@
+import { AuthModule } from 'src/auth/auth.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Call, User } from 'src/common/entity';
@@ -6,7 +7,7 @@ import { CallsService } from './calls.service';
 import { CallsGateway } from './calls.gateway';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Call, User])],
+  imports: [AuthModule, TypeOrmModule.forFeature([Call, User])],
   controllers: [CallsController],
   providers: [CallsService, CallsGateway],
   exports: [CallsService],

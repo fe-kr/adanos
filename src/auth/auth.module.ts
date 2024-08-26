@@ -28,5 +28,6 @@ import {
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, EmailMagicLinkStrategy, GoogleStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

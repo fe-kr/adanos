@@ -9,7 +9,8 @@ import {
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { CallsService } from './calls.service';
-import { nanoid } from 'nanoid';
+import { AuthService } from 'src/auth/auth.service';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 
 const CallEvent = {
   SEND_CALL_INVITE: 'SEND_CALL_INVITE',
@@ -20,81 +21,155 @@ const CallEvent = {
 
   START_CALL: 'START_CALL',
   END_CALL: 'END_CALL',
+
+  UPDATE_ICE_CANDIDATE: 'UPDATE_ICE_CANDIDATE',
+  UPDATE_SESSION_DESCRIPTION: 'UPDATE_SESSION_DESCRIPTION',
+
+  SERVER_EXCEPTION: 'SERVER_EXCEPTION',
 };
 
-@WebSocketGateway()
+const CallActor = {
+  SENDER: 'sender',
+  RECEIVER: 'receiver',
+};
+
+@WebSocketGateway({ namespace: '/api', cors: { origin: '*' } })
 export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() io: Server;
+  private socketsIds: Record<string, string>;
 
   constructor(
-    // private jwtService: JwtService,
+    private authService: AuthService,
     private callsService: CallsService,
-  ) {}
+  ) {
+    this.socketsIds = {};
+  }
 
-  handleConnection(@ConnectedSocket() client: Socket) {
-    // const { token } = client.handshake.auth;
-    // const { id, name } = this.jwtService.decode(token);
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    try {
+      const { accessToken } = client.handshake.auth;
 
-    client.data = {
-      id: Math.random().toString(),
-      name: Math.random().toString(),
-    };
+      if (!accessToken) {
+        throw new UnauthorizedException();
+      }
+
+      const { email } = this.authService.decodeJwtToken(accessToken);
+      const { id, name } = await this.authService.validateUser(email);
+
+      client.data = { id, name };
+      this.socketsIds[id] = client.id;
+      client.join(id);
+    } catch (err) {
+      client.emit(CallEvent.SERVER_EXCEPTION, err);
+      client.disconnect();
+    }
   }
 
   handleDisconnect(@ConnectedSocket() client: Socket) {
-    const { roomId } = client.data;
+    const { callId, id } = client.data;
 
-    client.broadcast.to(roomId).emit(CallEvent.END_CALL);
+    delete this.socketsIds[id];
+
+    client.broadcast.to(callId).emit(CallEvent.END_CALL);
   }
 
   @SubscribeMessage(CallEvent.SEND_CALL_INVITE)
-  handleSendCallInvite(
-    @MessageBody() peerId: string,
+  async handleSendCallInvite(
+    @MessageBody() data: { peerId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const { id, name } = client.data;
+    try {
+      const { id, name } = client.data;
+      const targetSocketId = this.socketsIds[data.peerId];
 
-    this.io
-      .to(peerId)
-      .emit(CallEvent.RECEIVE_CALL_INVITE, { peerId: id, name });
+      if (!targetSocketId) {
+        throw new NotFoundException();
+      }
+
+      const call = await this.callsService.create({
+        senderId: data.peerId,
+        receiverId: client.data.id,
+      });
+
+      this.io.to(targetSocketId).emit(CallEvent.RECEIVE_CALL_INVITE, {
+        peerId: id,
+        name,
+        callId: call.id,
+      });
+    } catch (err) {
+      client.emit(CallEvent.SERVER_EXCEPTION, err);
+    }
   }
 
   @SubscribeMessage(CallEvent.ACCEPT_CALL_INVITE)
-  handleAcceptCallInvite(
-    @MessageBody() peerId: string,
+  async handleAcceptCallInvite(
+    @MessageBody() data: { peerId: string; callId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const peerClient = this.io.of('/').sockets.get(peerId);
+    try {
+      const [peerClient] = await this.io.in(data.peerId).fetchSockets();
 
-    if (peerClient && client) {
-      const roomId = nanoid();
+      if (!peerClient) {
+        throw new NotFoundException();
+      }
 
       [peerClient, client].forEach((socket) => {
-        socket.data.roomId = roomId;
-        socket.join(roomId);
+        socket.data.callId = data.callId;
+        socket.join(data.callId);
       });
 
-      this.io.to(roomId).emit(CallEvent.START_CALL);
-      this.callsService.create({
-        senderId: peerId,
-        receiverId: client.data.id,
+      const targetSocketId = this.socketsIds[data.peerId];
+
+      this.io.to(targetSocketId).emit(CallEvent.START_CALL, {
+        callId: data.callId,
+        type: CallActor.SENDER,
+        peer: client.data,
       });
+
+      client.emit(CallEvent.START_CALL, {
+        callId: data.callId,
+        type: CallActor.RECEIVER,
+        peer: peerClient.data,
+      });
+    } catch (err) {
+      client.emit(CallEvent.SERVER_EXCEPTION, err);
     }
   }
 
   @SubscribeMessage(CallEvent.DECLINE_CALL_INVITE)
   handleDeclineCallInvite(
-    @MessageBody() peerId: string,
+    @MessageBody() data: { peerId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    this.io.to(peerId).emit(CallEvent.DECLINE_CALL_INVITE, client.data.id);
+    const targetSocketId = this.socketsIds[data.peerId];
+
+    this.io
+      .to(targetSocketId)
+      .emit(CallEvent.DECLINE_CALL_INVITE, client.data.id);
+  }
+
+  @SubscribeMessage(CallEvent.UPDATE_ICE_CANDIDATE)
+  handleUpdateIceCandidate(
+    @MessageBody() data: { peerId: string; candidate: string },
+  ) {
+    const targetSocketId = this.socketsIds[data.peerId];
+
+    this.io.to(targetSocketId).emit(CallEvent.UPDATE_ICE_CANDIDATE, data);
+  }
+
+  @SubscribeMessage(CallEvent.UPDATE_SESSION_DESCRIPTION)
+  handleUpdateSessionDescription(
+    @MessageBody() data: { peerId: string; session: RTCSessionDescriptionInit },
+  ) {
+    const targetSocketId = this.socketsIds[data.peerId];
+
+    this.io.to(targetSocketId).emit(CallEvent.UPDATE_SESSION_DESCRIPTION, data);
   }
 
   @SubscribeMessage(CallEvent.END_CALL)
-  handleEndCall(
-    @MessageBody() peerId: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    this.io.to(peerId).emit(CallEvent.END_CALL, client.data.id);
+  handleEndCall(@MessageBody() data: { peerId: string; callId: string }) {
+    this.io.to(data.peerId).emit(CallEvent.END_CALL);
+
+    this.callsService.update(data.callId, { endedAt: new Date() });
   }
 }

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { GetUser, IPagination, PaginationParams } from 'src/common/decorators';
+import { GetUser, IPagination, PaginationParams } from 'src/common/decorator';
 import { CallsService } from './calls.service';
 import { JwtAuthGuard } from 'src/auth/guard';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
