@@ -11,8 +11,4 @@ export class UpdateSessionDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
-  @ApiProperty({ required: false, nullable: true })
-  @IsString()
-  avatar?: string;
 }

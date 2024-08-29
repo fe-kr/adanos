@@ -3,9 +3,7 @@ import {
   Controller,
   Delete,
   Get,
-  HttpStatus,
   Param,
-  ParseFilePipeBuilder,
   Post,
   Put,
   UploadedFile,
@@ -20,6 +18,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/guard';
 import { GetUser } from 'src/common/decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageResizePipe, ImageValidationPipe } from 'src/common/pipe';
 
 @ApiTags('Users')
 @ApiBearerAuth('JWT')
@@ -38,7 +37,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Put(':id')
+  @Put('current')
   updateUser(
     @GetUser('id') userId: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -46,21 +45,14 @@ export class UsersController {
     return this.usersService.update(userId, updateUserDto);
   }
 
-  @UseInterceptors(FileInterceptor('file'))
   @Put('avatar')
+  @UseInterceptors(FileInterceptor('file'))
   uploadUserAvatar(
     @GetUser('id') userId: string,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: /^image\/(jpeg|png|gif|bmp|webp|tiff)$/i,
-        })
-        .addMaxSizeValidator({ maxSize: 2 * 1024 * 1024 })
-        .build({ errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
-    )
-    file: Express.Multer.File,
+    @UploadedFile(ImageValidationPipe, ImageResizePipe)
+    pathToFile: string,
   ) {
-    return this.usersService.uploadAvatar(userId, file);
+    return this.usersService.uploadAvatar(userId, pathToFile);
   }
 
   @Delete(':id')

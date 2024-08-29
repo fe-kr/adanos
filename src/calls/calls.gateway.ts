@@ -98,6 +98,8 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     } catch (err) {
       client.emit(CallEvent.SERVER_EXCEPTION, err);
+
+      return err;
     }
   }
 

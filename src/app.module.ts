@@ -9,7 +9,6 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { CallsModule } from './calls/calls.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -33,7 +32,6 @@ import { FilesModule } from './files/files.module';
     AuthModule,
     UsersModule,
     CallsModule,
-    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

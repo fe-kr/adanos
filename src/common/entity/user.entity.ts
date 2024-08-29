@@ -7,15 +7,20 @@ import {
   OneToMany,
   Relation,
   Unique,
+  BeforeInsert,
 } from 'typeorm';
 
 import type { Call } from './call.entity';
+import { nanoid } from 'nanoid';
 
-@Unique(['email'])
+@Unique(['email', 'peerId'])
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
+  peerId: string;
 
   @Column()
   name: string;
@@ -24,7 +29,7 @@ export class User {
   email: string;
 
   @Column({ nullable: true })
-  avatar: string;
+  avatarUrl: string;
 
   @Column({ default: true })
   inactive: boolean;
@@ -44,4 +49,9 @@ export class User {
 
   @OneToMany('Call', 'receiver')
   receivedCalls: Relation<Call[]>;
+
+  @BeforeInsert()
+  generatePeerId() {
+    this.peerId = nanoid(6);
+  }
 }

@@ -30,9 +30,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<void> {
     const email = emails[0].value;
-    const avatar = photos[0]?.value;
+    const avatarUrl = photos[0]?.value;
     const name = `${names.givenName} ${names.familyName}`;
 
-    done(null, { name, email, avatar });
+    done(null, { name, email, avatarUrl });
   }
 }

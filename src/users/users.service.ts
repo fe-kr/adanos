@@ -2,18 +2,31 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/common/entity';
 import { Repository } from 'typeorm';
-
+import { unlink } from 'fs';
+import { basename, join } from 'node:path';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { FilesService } from 'src/files/files.service';
+import { ConfigService } from '@nestjs/config';
+import { AppConfig } from 'src/common/config';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private filesService: FilesService,
+    private configService: ConfigService,
     @InjectRepository(User) private usersRepository: Repository<User>,
   ) {}
+
+  private getAvatarUrl(pathToFile: string) {
+    const { port, serveStaticRoot } = this.configService.get<AppConfig>('app');
+    const filename = basename(pathToFile);
+
+    const fileUrl = new URL('http:localhost');
+    fileUrl.port = port.toString();
+    fileUrl.pathname = `${serveStaticRoot}/${filename}`;
+
+    return fileUrl.href;
+  }
 
   findAll() {
     return this.usersRepository.find();
@@ -47,17 +60,20 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
-  async uploadAvatar(id: string, image: Express.Multer.File) {
-    const [pathToFile, { avatar }] = await Promise.all([
-      this.filesService.uploadImage(id, image),
-      this.usersRepository.findOneBy({ id }),
-    ]);
+  async uploadAvatar(id: string, pathToFile: string) {
+    const { serveStaticRoot } = this.configService.get<AppConfig>('app');
+    const user = await this.usersRepository.findOneBy({ id });
+    const avatarUrl = this.getAvatarUrl(pathToFile);
 
-    await this.usersRepository.update({ id }, { avatar: pathToFile });
+    await this.usersRepository.update({ id }, { avatarUrl });
 
-    // this.filesService.deleteFile(avatar);
+    if (user.avatarUrl) {
+      const filename = basename(user.avatarUrl);
 
-    return pathToFile;
+      unlink(join(serveStaticRoot, filename), () => {});
+    }
+
+    return avatarUrl;
   }
 
   delete(id: string) {

@@ -1,6 +1,5 @@
 import { EmailMagicLinkDto } from './dto/email-magic-link.dto';
 import { EmailMagicLinkVerifyDto } from './dto/email-magic-link-verify.dto';
-import { UpdateSessionDto } from './dto/update-session.dto';
 import {
   Controller,
   Req,
@@ -9,17 +8,11 @@ import {
   Get,
   UseGuards,
   Body,
-  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  EmailMagicLinkAuthGuard,
-  GoogleOAuthGuard,
-  JwtAuthGuard,
-} from './guard';
+import { EmailMagicLinkAuthGuard, GoogleOAuthGuard } from './guard';
 import { EmailMagicLinkStrategy } from './strategy';
-import { GetUser } from 'src/common/decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -55,11 +48,5 @@ export class AuthController {
   @UseGuards(GoogleOAuthGuard)
   signInByGoogleCallback(@Req() req) {
     return this.authService.signInUser(req.user);
-  }
-
-  @Put('session')
-  @UseGuards(JwtAuthGuard)
-  updateSession(@GetUser('id') userId: string, @Body() body: UpdateSessionDto) {
-    return this.authService.updateUserSession(userId, body);
   }
 }
