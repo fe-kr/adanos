@@ -39,13 +39,7 @@ export class UsersService {
   async create(userParams: CreateUserDto) {
     const newUser = this.usersRepository.create(userParams);
 
-    try {
-      const user = await this.usersRepository.save(newUser);
-
-      return user;
-    } catch (error) {
-      throw new Error(error);
-    }
+    return this.usersRepository.save(newUser);
   }
 
   async update(id: string, userParams: UpdateUserDto) {

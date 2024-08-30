@@ -11,27 +11,7 @@ import { Socket, Server } from 'socket.io';
 import { CallsService } from './calls.service';
 import { AuthService } from 'src/auth/auth.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-
-const CallEvent = {
-  SEND_CALL_INVITE: 'SEND_CALL_INVITE',
-  RECEIVE_CALL_INVITE: 'RECEIVE_CALL_INVITE',
-
-  ACCEPT_CALL_INVITE: 'ACCEPT_CALL_INVITE',
-  DECLINE_CALL_INVITE: 'DECLINE_CALL_INVITE',
-
-  START_CALL: 'START_CALL',
-  END_CALL: 'END_CALL',
-
-  UPDATE_ICE_CANDIDATE: 'UPDATE_ICE_CANDIDATE',
-  UPDATE_SESSION_DESCRIPTION: 'UPDATE_SESSION_DESCRIPTION',
-
-  SERVER_EXCEPTION: 'SERVER_EXCEPTION',
-};
-
-const CallActor = {
-  SENDER: 'sender',
-  RECEIVER: 'receiver',
-};
+import { CallActor, CallEvent } from './calls.enum';
 
 @WebSocketGateway({ namespace: '/api', cors: { origin: '*' } })
 export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
