@@ -34,11 +34,11 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const { email } = this.authService.decodeJwtToken(accessToken);
-      const { id, name } = await this.authService.validateUser(email);
+      const { peerId, name } = await this.authService.validateUser(email);
 
-      client.data = { id, name };
-      this.socketsIds[id] = client.id;
-      client.join(id);
+      client.data = { id: peerId, name };
+      this.socketsIds[peerId] = client.id;
+      client.join(peerId);
     } catch (err) {
       client.emit(CallEvent.SERVER_EXCEPTION, err);
       client.disconnect();

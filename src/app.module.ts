@@ -9,6 +9,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { CallsModule } from './calls/calls.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ChatsModule } from './chats/chats.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthModule,
     UsersModule,
     CallsModule,
+    ChatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
