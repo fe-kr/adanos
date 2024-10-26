@@ -36,8 +36,10 @@ export class CallsService {
 
   async create(callParams: CreateCallDto) {
     const { senderId, receiverId } = callParams;
-    const sender = await this.usersRepository.findOneBy({ id: senderId });
-    const receiver = await this.usersRepository.findOneBy({ id: receiverId });
+    const sender = await this.usersRepository.findOneBy({ peerId: senderId });
+    const receiver = await this.usersRepository.findOneBy({
+      peerId: receiverId,
+    });
 
     if (!sender || !receiver) {
       throw new Error('Sender or receiver not found');

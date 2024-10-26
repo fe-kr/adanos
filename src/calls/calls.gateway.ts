@@ -11,27 +11,7 @@ import { Socket, Server } from 'socket.io';
 import { CallsService } from './calls.service';
 import { AuthService } from 'src/auth/auth.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-
-const CallEvent = {
-  SEND_CALL_INVITE: 'SEND_CALL_INVITE',
-  RECEIVE_CALL_INVITE: 'RECEIVE_CALL_INVITE',
-
-  ACCEPT_CALL_INVITE: 'ACCEPT_CALL_INVITE',
-  DECLINE_CALL_INVITE: 'DECLINE_CALL_INVITE',
-
-  START_CALL: 'START_CALL',
-  END_CALL: 'END_CALL',
-
-  UPDATE_ICE_CANDIDATE: 'UPDATE_ICE_CANDIDATE',
-  UPDATE_SESSION_DESCRIPTION: 'UPDATE_SESSION_DESCRIPTION',
-
-  SERVER_EXCEPTION: 'SERVER_EXCEPTION',
-};
-
-const CallActor = {
-  SENDER: 'sender',
-  RECEIVER: 'receiver',
-};
+import { CallActor, CallEvent } from './calls.enum';
 
 @WebSocketGateway({ namespace: '/api', cors: { origin: '*' } })
 export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -54,11 +34,11 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const { email } = this.authService.decodeJwtToken(accessToken);
-      const { id, name } = await this.authService.validateUser(email);
+      const { peerId, name } = await this.authService.validateUser(email);
 
-      client.data = { id, name };
-      this.socketsIds[id] = client.id;
-      client.join(id);
+      client.data = { id: peerId, name };
+      this.socketsIds[peerId] = client.id;
+      client.join(peerId);
     } catch (err) {
       client.emit(CallEvent.SERVER_EXCEPTION, err);
       client.disconnect();

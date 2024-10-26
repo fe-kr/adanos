@@ -1,0 +1,5 @@
+export const ChatEvent = {
+  SEND_MESSAGE: 'SEND_MESSAGE',
+  SERVER_EXCEPTION: 'SERVER_EXCEPTION',
+  END_CHAT: 'END_CHAT',
+};
